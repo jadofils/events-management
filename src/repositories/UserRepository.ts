@@ -1,7 +1,6 @@
 import { AppDataSource } from "../config/Database";
 import { User } from "../models/User";
 import { Role } from "../models/Role";
-import { Organization } from "../models/Organization";
 import { UserInterface } from "../interfaces/interface";
 
 export class UserRepository {
@@ -34,17 +33,14 @@ export class UserRepository {
     user.lastName = data.LastName ?? '';
     user.email = data.Email ?? '';
     user.phoneNumber = data.PhoneNumber ?? null;
-    user.password = data.Password ?? '';
 
     return user;
   }
 
   /**
-   * Save the user with a default GUEST role and optional organization
    */
   static async saveUser(
     user: User,
-    organizationId?: string // Optional: pass if you want to assign org
   ): Promise<{ success: boolean; message: string; user?: User }> {
     if (!AppDataSource.isInitialized) {
       throw new Error("Database not initialized");
@@ -52,7 +48,6 @@ export class UserRepository {
 
     const userRepository = AppDataSource.getRepository(User);
     const roleRepository = AppDataSource.getRepository(Role);
-    const orgRepository = AppDataSource.getRepository(Organization);
 
     try {
       // 1. Assign default role
@@ -65,16 +60,7 @@ export class UserRepository {
 
       user.roles = [guestRole];
 
-      // 2. Assign organization if provided
-      if (organizationId) {
-        const org = await orgRepository.findOne({ where: { organizationId } });
-
-        if (!org) {
-          return { success: false, message: 'Provided organization does not exist' };
-        }
-
-        user.organizations = [org]; // Assuming many-to-many User <-> Organization
-      }
+    
 
       // 3. Save the user
       const savedUser = await userRepository.save(user);
@@ -91,10 +77,15 @@ export class UserRepository {
     }
   }
 
+
+
   static async getAllUsers(): Promise<Partial<User[]> | null> {
     const userRepository = AppDataSource.getRepository(User);
     return await userRepository.find({
       select: ["userId", "username", "firstName", "lastName", "email","phoneNumber"],
+      relations: ["roles","organizations"], // Include roles in the response
+      order: { username: "DESC" }, // Sort by username
+
     });
   }
 
@@ -103,6 +94,25 @@ export class UserRepository {
     return await userRepository.findOne({
       where: { userId: id },
       select: ["userId", "username", "firstName", "lastName", "email", "phoneNumber"],
+      relations: ["roles","organizations"], // Include roles in the response
     });
+  }
+
+  static async deleteUser(id: UserInterface["UserID"]): Promise<{ success: boolean; message: string }> {
+    const userRepository = AppDataSource.getRepository(User);
+  
+    try {
+      const user = await userRepository.findOne({ where: { userId: id } });
+  
+      if (!user) {
+        return { success: false, message: "User not found" };
+      }
+  
+      await userRepository.remove(user);
+      return { success: true, message: "User deleted successfully" };
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return { success: false, message: "Failed to delete user" };
+    }
   }
 }

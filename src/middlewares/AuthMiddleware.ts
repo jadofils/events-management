@@ -1,33 +1,41 @@
-// src/middlewares/auth.middleware.ts
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { AppConfig } from '../config/AppConfig';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 
-// Extend the Request type to include user information
-declare global {
-  namespace Express {
-    interface Request {
-      user?: any;
-    }
-  }
+const SECRET_KEY = process.env.JWT_SECRET || "your_jwt_secret"; // Use env variable in production
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+    username: string;
+    needsPasswordReset?: boolean;
+  };
 }
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Get token from header
+export const verifyJWT = (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): void => {
   const authHeader = req.headers.authorization;
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Authorization token is required' });
+  const token = authHeader?.split(" ")[1] || req.cookies?.authToken;
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      message: "Access denied. No token provided.",
+    });
+    return;
   }
-  
-  const token = authHeader.split(' ')[1];
-  
+
   try {
-    // Verify token
-    const decoded = jwt.verify(token, AppConfig.JWT_SECRET);
+    const decoded = jwt.verify(token, SECRET_KEY) as AuthenticatedRequest["user"];
     req.user = decoded;
     next();
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
+  } catch (err) {
+    res.status(401).json({
+      success: false,
+      message: "Invalid or expired token.",
+    });
   }
 };

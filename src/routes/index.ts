@@ -1,14 +1,14 @@
+// src/routes/apiRoutes.ts
 import { Router } from 'express';
 import { userRoutes } from './UserRoutes';
-import roleRoutes from "./RoleRoutes"
+import roleRoutes from './RoleRoutes';
 import organizationRoutes from './OrganizationRoutes';
 
 const router = Router();
 
-// API Routes for each path
+// Use versioned routes
 router.use('/users', userRoutes);
 router.use('/roles', roleRoutes);
-//routes fro organizations
-router.use('/organizations', organizationRoutes);
+router.use('/organizations', organizationRoutes); // This makes `/api/v1/organizations/*` available
 
 export default router;

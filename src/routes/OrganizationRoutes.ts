@@ -1,21 +1,17 @@
+// src/routes/OrganizationRoutes.ts
 import { Router } from 'express';
 import { OrganizationController } from '../controller/OrganizationController';
 
 const router = Router();
 
-// Get all organizations
+// All other organization routes
 router.get('/all', OrganizationController.getAll);
-
-// Get an organization by ID
 router.get('/:id', OrganizationController.getById);
-
-// Create a new organization
 router.post('/add', OrganizationController.create);
+router.put('/update/:id', OrganizationController.update);
+router.delete('/delete/:id', OrganizationController.delete);
 
-// Update an existing organization
-router.put('/:id', OrganizationController.update);
-
-// Delete an organization
-router.delete('/:id', OrganizationController.delete);
+// Add user to organization (ensure the correct route is defined)
+router.put('/addUser', OrganizationController.addUserToOrganization);
 
 export default router;

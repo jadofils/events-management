@@ -54,12 +54,6 @@ export class User {
   @Column({ nullable: true })
   @IsOptional()
   @IsString({ message: 'Password must be a string' })
-  @MinLength(8, {
-    message: 'Password must be at least $constraint1 characters long',
-  })
-  @MaxLength(20, {
-    message: 'Password must not exceed $constraint1 characters',
-  })
   password?: string;
 
   @Column({ type: 'varchar', nullable: true })

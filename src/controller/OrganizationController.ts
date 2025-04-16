@@ -72,7 +72,7 @@ export class OrganizationController {
   static async update(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     const { OrganizationName, Description, ContactEmail, ContactPhone, Address, OrganizationType } = req.body;
-
+console.log("id's from body:",req.body)
     if (!id) {
        res.status(400).json({ success: false, message: 'Organization ID is required' });
     }
@@ -116,4 +116,35 @@ export class OrganizationController {
       res.status(500).json({ success: false, message: 'Failed to delete organization', error: err.message });
     }
   }
+
+
+
+  static async addUserToOrganization(req: Request, res: Response): Promise<void> {
+    const { userId, organizationId } = req.body;
+console.log("id's from body:",req.body)
+    if (!userId || !organizationId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId and organizationId are required',
+      });
+      return;
+    }
+
+    const result = await OrganizationRepository.addUserToOrganization(userId, organizationId);
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        organization: result.organization,
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: result.message,
+      });
+    }
+  }
+
+
 }

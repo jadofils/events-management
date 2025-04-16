@@ -153,3 +153,21 @@ export interface OrganizationUserInterface {
   UserID: string;
   OrganizationID: string;
 }
+
+
+export interface OrganizationUserInterface {
+  id: string;
+  userId: string;
+  organizationId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: UserInterface;
+  organization: OrganizationInterface;
+}
+
+export interface OrganizationUserWithRelationsInterface extends OrganizationUserInterface {
+  user: UserInterface & {
+    roles: RoleInterface[];
+  };
+  organization: OrganizationInterface;
+}
